@@ -1,8 +1,6 @@
 from django.urls import path, include
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-)
 from rest_framework.routers import SimpleRouter
+
 from api.views import UserViewSet, signup, get_token
 
 router = SimpleRouter()
