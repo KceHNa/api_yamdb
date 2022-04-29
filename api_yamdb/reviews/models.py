@@ -25,3 +25,4 @@ class User(AbstractUser):
         max_length=200,
         null=True
     )
+    REQUIRED_FIELDS = ['email']
