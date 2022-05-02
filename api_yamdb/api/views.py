@@ -1,16 +1,28 @@
 from django.db.models import Avg
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, permissions, filters, mixins
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 import random
 from django.core.mail import send_mail
+from django_filters.rest_framework import DjangoFilterBackend
 
-from reviews.models import User, Title, Review, Comment
+from reviews.models import User, Title, Review, Comment, Genre, Category
+
+from .filters import TitleFilter
 from .serializers import (UserSerializer, SignUpSerializer,
                           GetTokenSerializer, ReviewSerializer,
-                          TitleSerializer, CommentSerializer)
+                          TitleSerializer, CommentSerializer,
+                          GenreSerializer, CategorySerializer)
+
+
+class CreateListDestroy(mixins.CreateModelMixin,
+                        mixins.DestroyModelMixin,
+                        mixins.ListModelMixin,
+                        viewsets.GenericViewSet):
+
+    pass
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -51,12 +63,28 @@ def get_token(request):
     return Response(serializer.data)
 
 
+class GenreViewSet(CreateListDestroy):
+    search_fields = ('name',)
+    lookup_field = 'slug'
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer
+    filter_backends = (filters.SearchFilter,)
+
+
+class CategoryViewSet(CreateListDestroy):
+    search_fields = ('name',)
+    lookup_field = 'slug'
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    filter_backends = (filters.SearchFilter,)
+
+
 class TitlesViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.all()
-    # queryset = Title.objects.all().annotate(
-    #     Avg("reviews__score")
-    # ).order_by("name")
+    queryset = Title.objects.annotate(
+        rank=Avg('reviews__score')).all()
     serializer_class = TitleSerializer
+    filter_backends = (DjangoFilterBackend,)
+    filter_class = TitleFilter
 
 
 class ReviewsViewSet(viewsets.ModelViewSet):
