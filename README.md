@@ -9,9 +9,7 @@
 
 ```
 git clone <cсылка_на_проект_в_git>api_yamdb.git
-```
 
-```
 cd api_yamdb
 ```
 
@@ -29,9 +27,7 @@ source env/bin/activate
 
 ```
 python3 -m pip install --upgrade pip
-```
 
-```
 pip install -r requirements.txt
 ```
 
