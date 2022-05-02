@@ -36,23 +36,27 @@ class TitleSerializer(serializers.ModelSerializer):
     description = serializers.CharField(required=False)
 
     class Meta:
+        fields = '__all__'
         model = Title
         fields = '__all__'
 
 
 class ReviewSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
-        read_only=True, slug_field='username'
+        read_only=True,
+        default=serializers.CurrentUserDefault(),
+        slug_field='username'
     )
-    # def validate(self, data):
-    #     title_id = self.context['view'].kwargs.get('title_id')
-    #     title = get_object_or_404(Title, id=title_id)
-    #     if str(title.id) == title_id:
-    #     if self.context.get('request').user == data['reviews']:
-    #         raise serializers.ValidationError(
-    #             'Возможено добавить только один отзыв!'
-    #         )
-    #     return data
+
+    def validate_user_reviews(self, data):
+        # Id произведения из контекса,
+        title_id = self.context['view'].kwargs.get('title_id')
+        user = self.context.get('request').user
+        if user.reviews.filter(title_id=title_id).exists():
+            raise serializers.ValidationError(
+                'Возможено добавить только один отзыв!'
+            )
+        return data
 
     class Meta:
         model = Review
