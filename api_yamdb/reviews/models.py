@@ -29,9 +29,66 @@ class User(AbstractUser):
     REQUIRED_FIELDS = ['email']
 
 
+class Category(models.Model):
+    """Категории, разделы"""
+    name = models.CharField(
+        verbose_name='Категория',
+        unique=True,
+        max_length=200
+    )
+    slug = models.SlugField(unique=True)
+
+    def __str__(self):
+        return self.slug
+
+
+class Genre(models.Model):
+    """Жанр произведения.
+
+    Добавить новые жанры может только
+    администратор.
+    """
+    name = models.CharField(
+        verbose_name='Жанр',
+        unique=True,
+        max_length=200
+    )
+    slug = models.SlugField(unique=True)
+
+    def __str__(self):
+        return self.slug
+
+
 class Title(models.Model):
     """ Определённый фильм, книга или песенка."""
-    name = models.CharField(max_length=250)
+    name = models.CharField(
+        verbose_name='Название',
+        max_length=250
+    )
+    year = models.IntegerField(
+        verbose_name='Дата выпуска'
+    )
+    description = models.TextField(
+        verbose_name='Описание',
+        max_length=250,
+    )
+    genre = models.ManyToManyField(
+        Genre,
+        blank=True,
+        db_index=True,
+        related_name='titles',
+        verbose_name='Жанр'
+    )
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        verbose_name='Категория'
+    )
+
+    def __str__(self):
+        return self.name
 
 
 class Review(models.Model):

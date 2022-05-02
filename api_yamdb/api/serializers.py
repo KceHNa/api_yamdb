@@ -1,8 +1,9 @@
 from rest_framework import serializers
+from rest_framework.serializers import ModelSerializer
 from rest_framework.generics import get_object_or_404
 from rest_framework.validators import UniqueTogetherValidator
 
-from reviews.models import User, Title, Review, Comment
+from reviews.models import User, Title, Review, Comment, Category, Genre
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -26,13 +27,17 @@ class GetTokenSerializer(serializers.ModelSerializer):
 
 
 class TitleSerializer(serializers.ModelSerializer):
-    rating = serializers.IntegerField(
+    rank = serializers.IntegerField(
         source='reviews__score__avg',
         read_only=True
     )
+    category = CategorySerializer(read_only=True)
+    genre = GenreSerializer(many=True, read_only=True)
+    description = serializers.CharField(required=False)
 
     class Meta:
         model = Title
+        fields = '__all__'
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -63,3 +68,19 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = '__all__'
+
+
+class GenreSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Genre
+        fields = ('name', 'slug')
+        lookup_field = 'slug'
+
+
+class CategorySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Category
+        fields = ('name', 'slug')
+        lookup_field = 'slug'
