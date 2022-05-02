@@ -49,7 +49,6 @@ class TitleSerializer(serializers.ModelSerializer):
     description = serializers.CharField(required=False)
 
     class Meta:
-        fields = '__all__'
         model = Title
         fields = '__all__'
 
@@ -70,6 +69,14 @@ class ReviewSerializer(serializers.ModelSerializer):
                 'Возможено добавить только один отзыв!'
             )
         return data
+
+    @staticmethod
+    def validate_score(value):
+        if 0 < value >= 10:
+            raise serializers.ValidationError(
+                'Оценка - это целое чисто от 1 до 10'
+            )
+        return value
 
     class Meta:
         model = Review
