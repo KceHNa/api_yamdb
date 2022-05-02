@@ -60,7 +60,7 @@ class TitlesViewSet(viewsets.ModelViewSet):
 
 
 class ReviewsViewSet(viewsets.ModelViewSet):
-    queryset = Review.objects.all()
+    # queryset = Review.objects.all()
     serializer_class = ReviewSerializer
 
     def get_queryset(self):
@@ -75,16 +75,22 @@ class ReviewsViewSet(viewsets.ModelViewSet):
 
 
 class CommentViewSet(viewsets.ModelViewSet):
-    queryset = Comment
     serializer_class = CommentSerializer
 
     def get_queryset(self):
         # Получаем id произведения и id отзыва на него
         title_id = self.kwargs.get('title_id')
-        review_id = self.kwargs.get('review_id')
-        title = get_object_or_404(Title, pk=title_id)
-        reviews = title.reviews.all()
-        return reviews
+        title = get_object_or_404(Title, id=title_id)
+        try:
+            review_id = self.kwargs.get('review_id')
+            review = title.reviews.get(id=review_id)
+        except TypeError:
+            TypeError('Нет такого отзыва по этому id')
+        return review.comments.all()
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        title_id = self.kwargs.get('title_id')
+        title = get_object_or_404(Title, id=title_id)
+        review_id = self.kwargs.get('review_id')
+        review = title.reviews.get(id=review_id)
+        serializer.save(author=self.request.user, review=review)
