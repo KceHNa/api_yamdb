@@ -12,12 +12,17 @@ from .serializers import (
     SignUpSerializer,
     GetTokenSerializer
 )
-
+from .permissions import IsAdmin, ReadOnly
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = (IsAdmin, )
+
+    def get_permissions(self):
+        if self.action == 'retrieve':
+            return (ReadOnly(),)
+        return super().get_permissions()
 
 
 @api_view(['POST'])
