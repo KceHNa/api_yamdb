@@ -76,7 +76,7 @@ class Title(models.Model):
         Genre,
         blank=True,
         db_index=True,
-        related_name='titles',
+        related_name='genres',
         verbose_name='Жанр'
     )
     category = models.ForeignKey(
@@ -84,11 +84,16 @@ class Title(models.Model):
         on_delete=models.SET_NULL,
         blank=True,
         null=True,
-        verbose_name='Категория'
+        verbose_name='Категория',
+        related_name='titles'
     )
 
+    class Meta:
+        ordering = ('name', 'category')
+        verbose_name = 'Произведение. model Title'
+
     def __str__(self):
-        return self.name
+        return f'{self.name}, {self.category}', {str(self.year)}
 
 
 class Review(models.Model):
