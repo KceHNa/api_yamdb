@@ -60,6 +60,11 @@ class ReviewSerializer(serializers.ModelSerializer):
         slug_field='username'
     )
 
+    class Meta:
+        model = Review
+        fields = '__all__'
+        read_only_fields = ('title',)
+
     def validate_user_reviews(self, data):
         # Id произведения из контекса
         title_id = self.context['view'].kwargs.get('title_id')
@@ -72,16 +77,11 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def validate_score(value):
-        if 0 < value >= 10:
+        if value <= 0 or value > 10:
             raise serializers.ValidationError(
-                'Оценка - это целое чисто от 1 до 10'
+                'Оценка - это целое число от 1 до 10'
             )
         return value
-
-    class Meta:
-        model = Review
-        fields = '__all__'
-        read_only_fields = ('title',)
 
 
 class CommentSerializer(serializers.ModelSerializer):

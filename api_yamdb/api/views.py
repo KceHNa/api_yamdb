@@ -8,9 +8,10 @@ import random
 from django.core.mail import send_mail
 from django_filters.rest_framework import DjangoFilterBackend
 
-from reviews.models import User, Title, Review, Comment, Genre, Category
+from reviews.models import User, Title, Genre, Category
 
 from .filters import TitleFilter
+from .permissions import IsAuthorAndStaffOrReadOnly
 from .serializers import (UserSerializer, SignUpSerializer,
                           GetTokenSerializer, ReviewSerializer,
                           TitleSerializer, CommentSerializer,
@@ -88,8 +89,8 @@ class TitlesViewSet(viewsets.ModelViewSet):
 
 
 class ReviewsViewSet(viewsets.ModelViewSet):
-    # queryset = Review.objects.all()
     serializer_class = ReviewSerializer
+    permissions_classes = [IsAuthorAndStaffOrReadOnly]
 
     def get_queryset(self):
         title_id = self.kwargs.get('title_id')
