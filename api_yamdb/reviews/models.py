@@ -115,6 +115,7 @@ class Review(models.Model):
     )
 
     class Meta:
+        ordering = ['-pub_date']
         constraints = [
             models.UniqueConstraint(
                 name='unique_reviews',
