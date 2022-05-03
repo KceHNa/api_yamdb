@@ -105,6 +105,7 @@ class ReviewsViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
+    permissions_classes = [IsAuthorAndStaffOrReadOnly]
 
     def get_queryset(self):
         # Получаем id произведения и id отзыва на него
@@ -120,6 +121,9 @@ class CommentViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         title_id = self.kwargs.get('title_id')
         title = get_object_or_404(Title, id=title_id)
-        review_id = self.kwargs.get('review_id')
-        review = title.reviews.get(id=review_id)
+        try:
+            review_id = self.kwargs.get('review_id')
+            review = title.reviews.get(id=review_id)
+        except TypeError:
+            TypeError('Нет такого отзыва по этому id')
         serializer.save(author=self.request.user, review=review)
