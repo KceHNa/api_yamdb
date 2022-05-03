@@ -1,7 +1,7 @@
 from rest_framework import viewsets, permissions
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.shortcuts import get_object_or_404
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
 import random
 from django.core.mail import send_mail
@@ -18,6 +18,15 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = (IsAdmin, )
+
+    @action(detail=False)
+    def me(self, request, *args, **kwargs):
+        #queryset = User.objects.filter(username=request.user.username)
+        #serializer = UserSerializer(queryset)
+        queryset = User.objects.all()
+        user = get_object_or_404(queryset, username=request.user.username)
+        serializer = UserSerializer(user)
+        return Response(serializer.data)
 
     def get_permissions(self):
         if self.action == 'retrieve':
