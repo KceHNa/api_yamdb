@@ -11,7 +11,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from reviews.models import User, Title, Genre, Category
 
 from .filters import TitleFilter
-from .permissions import IsAuthorAndStaffOrReadOnly, IsAdmin, ReadOnly
+from .permissions import IsAuthorAndStaffOrReadOnly, IsAdmin, IsMe
 from .serializers import (UserSerializer, SignUpSerializer,
                           GetTokenSerializer, ReviewSerializer,
                           TitleSerializer, CommentSerializer,
@@ -42,8 +42,8 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def get_permissions(self):
-        if self.action == 'retrieve':
-            return (ReadOnly(),)
+        if self.action == 'me':
+            return (IsMe(),)
         return super().get_permissions()
 
 
