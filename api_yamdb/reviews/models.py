@@ -95,6 +95,14 @@ class Title(models.Model):
         return self.name
 
 
+class GenreTitle(models.Model):
+    genre = models.ForeignKey(Genre, on_delete=models.CASCADE)
+    title = models.ForeignKey(Title, on_delete=models.CASCADE)
+
+    def __str__(self) -> str:
+        return f'{self.genre} {self.title}'
+
+
 class Review(models.Model):
     """ Отзывы на произведения."""
     title = models.ForeignKey(
@@ -111,7 +119,8 @@ class Review(models.Model):
     score = models.SmallIntegerField(
         'Оценка',
         validators=[MaxValueValidator(10), MinValueValidator(1)],
-        default=1)
+        default=1
+    )
     pub_date = models.DateTimeField(
         'Дата публикации',
         auto_now_add=True,
