@@ -1,5 +1,5 @@
 from django.contrib.auth.models import AbstractUser
-from django.core.validators import MaxValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 ROLES_CHOICES = (
@@ -96,6 +96,28 @@ class Title(models.Model):
         return f'{self.name}, {self.category}', {str(self.year)}
 
 
+class GenreTitle(models.Model):
+    """Cвязь жанра и произведения."""
+    title = models.ForeignKey(
+        Title,
+        on_delete=models.CASCADE,
+        verbose_name='title'
+    )
+    genre = models.ForeignKey(
+        Genre,
+        on_delete=models.CASCADE,
+        verbose_name='genre'
+    )
+
+    def __str__(self):
+        return ('title_id - {title_id} {title_name} '
+                'genre_id - {genre_id} {slug}').format(
+            title_id=self.title.id,
+            title_name=self.title.name[:15],
+            genre_id=self.genre.id,
+            slug=self.genre.slug)
+
+
 class Review(models.Model):
     """ Отзывы на произведения."""
     title = models.ForeignKey(
@@ -110,7 +132,9 @@ class Review(models.Model):
         related_name='reviews'
     )
     score = models.SmallIntegerField(
-        validators=[MaxValueValidator(10)], default=0)
+        'Оценка',
+        validators=[MaxValueValidator(10), MinValueValidator(1)],
+        default=1)
     pub_date = models.DateTimeField(
         'Дата публикации',
         auto_now_add=True,
@@ -118,6 +142,7 @@ class Review(models.Model):
     )
 
     class Meta:
+        ordering = ['-pub_date']
         constraints = [
             models.UniqueConstraint(
                 name='unique_reviews',
@@ -139,7 +164,10 @@ class Comment(models.Model):
     )
     text = models.TextField()
     pub_date = models.DateTimeField(
-        'Дата добавления',
+        'Дата комментария',
         auto_now_add=True,
         db_index=True
     )
+
+    def __str__(self):
+        return self.author

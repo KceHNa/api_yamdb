@@ -8,9 +8,10 @@ import random
 from django.core.mail import send_mail
 from django_filters.rest_framework import DjangoFilterBackend
 
-from reviews.models import User, Title, Review, Comment, Genre, Category
+from reviews.models import User, Title, Genre, Category
 
 from .filters import TitleFilter
+from .permissions import IsAuthorAndStaffOrReadOnly, IsAdminOrSuperuser
 from .serializers import (UserSerializer, SignUpSerializer,
                           GetTokenSerializer, ReviewSerializer,
                           TitleSerializer, CommentSerializer,
@@ -70,6 +71,10 @@ class GenreViewSet(CreateListDestroy):
     serializer_class = GenreSerializer
     filter_backends = (filters.SearchFilter,)
 
+    def get_permissions(self):
+        if self.action == 'list':
+            return IsAdminOrSuperuser()
+
 
 class CategoryViewSet(CreateListDestroy):
     search_fields = ('name',)
@@ -77,6 +82,10 @@ class CategoryViewSet(CreateListDestroy):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     filter_backends = (filters.SearchFilter,)
+
+    def get_permissions(self):
+        if self.action == 'list':
+            return IsAdminOrSuperuser()
 
 
 class TitlesViewSet(viewsets.ModelViewSet):
@@ -86,10 +95,14 @@ class TitlesViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     filter_class = TitleFilter
 
+    def get_permissions(self):
+        if self.action == 'list' or self.action == 'retrieve':
+            return IsAdminOrSuperuser()
+
 
 class ReviewsViewSet(viewsets.ModelViewSet):
-    queryset = Review.objects.all()
     serializer_class = ReviewSerializer
+    permissions_classes = [IsAuthorAndStaffOrReadOnly]
 
     def get_queryset(self):
         title_id = self.kwargs.get('title_id')
@@ -103,16 +116,26 @@ class ReviewsViewSet(viewsets.ModelViewSet):
 
 
 class CommentViewSet(viewsets.ModelViewSet):
-    queryset = Comment
     serializer_class = CommentSerializer
+    permissions_classes = [IsAuthorAndStaffOrReadOnly]
 
     def get_queryset(self):
         # Получаем id произведения и id отзыва на него
         title_id = self.kwargs.get('title_id')
-        review_id = self.kwargs.get('review_id')
-        title = get_object_or_404(Title, pk=title_id)
-        reviews = title.reviews.all()
-        return reviews
+        title = get_object_or_404(Title, id=title_id)
+        try:
+            review_id = self.kwargs.get('review_id')
+            review = title.reviews.get(id=review_id)
+        except TypeError:
+            TypeError('Нет такого отзыва по этому id')
+        return review.comments.all()
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        title_id = self.kwargs.get('title_id')
+        title = get_object_or_404(Title, id=title_id)
+        try:
+            review_id = self.kwargs.get('review_id')
+            review = title.reviews.get(id=review_id)
+        except TypeError:
+            TypeError('Нет такого отзыва по этому id')
+        serializer.save(author=self.request.user, review=review)

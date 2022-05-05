@@ -9,7 +9,7 @@ app_name = 'api'
 
 
 ver1 = SimpleRouter('v1')
-ver1.register('users', UserViewSet)
+ver1.register(r'users', UserViewSet)
 ver1.register(r'titles', TitlesViewSet)
 ver1.register(
     r'titles/(?P<title_id>[0-9]+)/reviews',

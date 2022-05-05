@@ -1,18 +1,17 @@
 from rest_framework import serializers
-from rest_framework.serializers import ModelSerializer
-from rest_framework.generics import get_object_or_404
-from rest_framework.validators import UniqueTogetherValidator
 
 from reviews.models import User, Title, Review, Comment, Category, Genre
 
 
 class UserSerializer(serializers.ModelSerializer):
+
     class Meta:
         fields = '__all__'
         model = User
 
 
 class SignUpSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = User
         fields = ('email', 'username')
@@ -26,18 +25,18 @@ class GetTokenSerializer(serializers.ModelSerializer):
         fields = ('username', 'confirmation_code', 'token')
 
 
-class GenreSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Genre
-        fields = ('name', 'slug')
-        lookup_field = 'slug'
-
-
 class CategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Category
+        fields = ('name', 'slug')
+        lookup_field = 'slug'
+
+
+class GenreSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Genre
         fields = ('name', 'slug')
         lookup_field = 'slug'
 
@@ -72,22 +71,33 @@ class TitlePostSerializer(serializers.ModelSerializer):
 
 class ReviewSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
-        read_only=True, slug_field='username'
+        read_only=True,
+        default=serializers.CurrentUserDefault(),
+        slug_field='username'
     )
-    # def validate(self, data):
-    #     title_id = self.context['view'].kwargs.get('title_id')
-    #     title = get_object_or_404(Title, id=title_id)
-    #     if str(title.id) == title_id:
-    #     if self.context.get('request').user == data['reviews']:
-    #         raise serializers.ValidationError(
-    #             'Возможено добавить только один отзыв!'
-    #         )
-    #     return data
 
     class Meta:
         model = Review
         fields = '__all__'
         read_only_fields = ('title',)
+
+    def validate_user_reviews(self, data):
+        # Id произведения из контекса
+        title_id = self.context['view'].kwargs.get('title_id')
+        user = self.context.get('request').user
+        if user.reviews.filter(title_id=title_id).exists():
+            raise serializers.ValidationError(
+                'Возможено добавить только один отзыв!'
+            )
+        return data
+
+    @staticmethod
+    def validate_score(value):
+        if value <= 0 or value > 10:
+            raise serializers.ValidationError(
+                'Оценка - это целое число от 1 до 10'
+            )
+        return value
 
 
 class CommentSerializer(serializers.ModelSerializer):
