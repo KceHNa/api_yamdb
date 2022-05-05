@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.generics import get_object_or_404
 
 from reviews.models import User, Title, Review, Comment, Category, Genre
 
@@ -42,7 +43,7 @@ class GenreSerializer(serializers.ModelSerializer):
 
 
 class TitleSerializer(serializers.ModelSerializer):
-    rank = serializers.IntegerField(
+    rating = serializers.IntegerField(
         source='reviews__score__avg',
         read_only=True
     )
@@ -71,6 +72,7 @@ class TitlePostSerializer(serializers.ModelSerializer):
 
 class ReviewSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
+        many=False,
         read_only=True,
         default=serializers.CurrentUserDefault(),
         slug_field='username'
@@ -81,19 +83,19 @@ class ReviewSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = ('title',)
 
-    def validate_user_reviews(self, data):
-        # Id произведения из контекса
+    def validate(self, data):
         title_id = self.context['view'].kwargs.get('title_id')
-        user = self.context.get('request').user
-        if user.reviews.filter(title_id=title_id).exists():
+        author = self.context.get('request').user
+        title = get_object_or_404(Title, id=title_id)
+        if (title.reviews.filter(author=author).exists() and
+                self.context.get('request').method != 'PATCH'):
             raise serializers.ValidationError(
                 'Возможено добавить только один отзыв!'
             )
         return data
 
-    @staticmethod
-    def validate_score(value):
-        if value <= 0 or value > 10:
+    def validate_score(self, value):
+        if value < 1 or value > 10:
             raise serializers.ValidationError(
                 'Оценка - это целое число от 1 до 10'
             )

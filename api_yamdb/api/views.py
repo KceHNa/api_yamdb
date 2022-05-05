@@ -11,7 +11,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from reviews.models import User, Title, Genre, Category
 
 from .filters import TitleFilter
-from .permissions import IsAuthorAndStaffOrReadOnly, IsAdminOrSuperuser
+from .permissions import IsAuthorAndStaffOrReadOnly, IsAdminOrSuperuser, ReadOnly, IsAuthorOrReadOnly
 from .serializers import (UserSerializer, SignUpSerializer,
                           GetTokenSerializer, ReviewSerializer,
                           TitleSerializer, CommentSerializer,
@@ -118,8 +118,9 @@ class CategoryViewSet(CreateListDestroy):
 
 
 class TitlesViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.annotate(
-        rank=Avg('reviews__score')).all()
+    queryset = Title.objects.all().annotate(
+        Avg("reviews__score")
+    ).order_by("name")
     serializer_class = TitleSerializer
     filter_backends = (DjangoFilterBackend,)
     filter_class = TitleFilter
@@ -132,6 +133,7 @@ class TitlesViewSet(viewsets.ModelViewSet):
 class ReviewsViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
     permissions_classes = [IsAuthorAndStaffOrReadOnly]
+    http_method_names = ['get', 'post', 'patch', 'delete']
 
     def get_queryset(self):
         title_id = self.kwargs.get('title_id')
@@ -141,7 +143,8 @@ class ReviewsViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         title_id = self.kwargs.get('title_id')
         title = get_object_or_404(Title, pk=title_id)
-        serializer.save(author=self.request.user, title=title)
+        if serializer.is_valid:
+            serializer.save(author=self.request.user, title=title)
 
 
 class CommentViewSet(viewsets.ModelViewSet):
