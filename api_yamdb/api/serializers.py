@@ -6,7 +6,10 @@ from reviews.models import User, Title, Review, Comment, Category, Genre
 class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
-        fields = '__all__'
+        fields = (
+            'username', 'email', 'role',
+            'first_name', 'last_name', 'bio'
+        )
         model = User
 
 
@@ -17,12 +20,9 @@ class SignUpSerializer(serializers.ModelSerializer):
         fields = ('email', 'username')
 
 
-class GetTokenSerializer(serializers.ModelSerializer):
-    token = serializers.SerializerMethodField()
-
-    class Meta:
-        model = User
-        fields = ('username', 'confirmation_code', 'token')
+class GetTokenSerializer(serializers.Serializer):
+    username = serializers.CharField(max_length=256)
+    confirmation_code = serializers.CharField(max_length=256)
 
 
 class CategorySerializer(serializers.ModelSerializer):

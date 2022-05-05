@@ -1,8 +1,8 @@
 from django.db.models import Avg
-from rest_framework import viewsets, permissions, filters, mixins
+from rest_framework import viewsets, filters, mixins, status, permissions
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.shortcuts import get_object_or_404
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
 import random
 from django.core.mail import send_mail
@@ -29,39 +29,68 @@ class CreateListDestroy(mixins.CreateModelMixin,
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = (IsAdminOrSuperuser, )
+    lookup_field = "username"
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('username',)
+
+    @action(detail=False, methods=['GET', 'PATCH', 'DELETE'])
+    def me(self, request, *args, **kwargs):
+        queryset = User.objects.all()
+        user = get_object_or_404(queryset, username=request.user.username)
+        if request.method == 'DELETE':
+            return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        if request.method == 'GET':
+            serializer = UserSerializer(user)
+            return Response(serializer.data)
+        if request.method == 'PATCH':
+            serializer = UserSerializer(user, data=request.data, partial=True)
+            if request.user.role == 'user':
+                if serializer.is_valid():
+                    serializer.save(role='user')
+                    return Response(serializer.data, status=status.HTTP_200_OK)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def get_permissions(self):
+        if self.action == 'me':
+            return (permissions.IsAuthenticated(),)
+        return super().get_permissions()
 
 
 @api_view(['POST'])
 def signup(request):
-    code = random.randint(100000, 999999)
-    email = request.data['email']
-    send_mail(
-        'Код подтверждения YaMDb',
-        f'Ваш код подтверждения: {code}',
-        'from@yamdb.com',
-        [f'{email}'],
-        fail_silently=False,
-    )
     serializer = SignUpSerializer(data=request.data)
     if serializer.is_valid():
+        code = random.randint(100000, 999999)
+        email = request.data['email']
+        send_mail(
+            'Код подтверждения YaMDb',
+            f'Ваш код подтверждения: {code}',
+            'from@yamdb.com',
+            [f'{email}'],
+            fail_silently=False,
+        )
+        if request.data['username'] == 'me':
+            return Response(status=status.HTTP_400_BAD_REQUEST)
         serializer.save(confirmation_code=code)
-    return Response(serializer.data)
+        return Response(serializer.data)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])
 def get_token(request):
-    user = get_object_or_404(User, username=request.data['username'])
     serializer = GetTokenSerializer(data=request.data)
     if serializer.is_valid():
-        pass
-    if request.data['confirmation_code'] == user.confirmation_code:
-        token = RefreshToken.for_user(user)
-        return Response({
-            'username': request.data['username'],
-            'token': str(token.access_token)
-        })
-    return Response(serializer.data)
+        user = get_object_or_404(User, username=request.data['username'])
+        if request.data['confirmation_code'] == user.confirmation_code:
+            token = RefreshToken.for_user(user)
+            return Response({
+                'username': request.data['username'],
+                'token': str(token.access_token)
+            })
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class GenreViewSet(CreateListDestroy):

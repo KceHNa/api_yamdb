@@ -26,7 +26,11 @@ class User(AbstractUser):
         max_length=200,
         null=True
     )
-    REQUIRED_FIELDS = ['email']
+    password = models.CharField(
+        'Пароль',
+        max_length=200,
+        null=True
+    )
 
 
 class Category(models.Model):
