@@ -11,7 +11,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from reviews.models import User, Title, Genre, Category
 
 from .filters import TitleFilter
-from .permissions import IsAuthorAndStaffOrReadOnly, IsAdminOrSuperuser, ReadOnly, IsAuthorOrReadOnly
+from .permissions import IsAuthorAndStaffOrReadOnly, IsAdminOrSuperuser
 from .serializers import (UserSerializer, SignUpSerializer,
                           GetTokenSerializer, ReviewSerializer,
                           TitleSerializer, CommentSerializer,
@@ -55,7 +55,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action == 'me':
-            return (permissions.IsAuthenticated(),)
+            return permissions.IsAuthenticated(),
         return super().get_permissions()
 
 
@@ -99,10 +99,12 @@ class GenreViewSet(CreateListDestroy):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     filter_backends = (filters.SearchFilter,)
+    permissions_classes = [IsAuthorAndStaffOrReadOnly]
 
     def get_permissions(self):
         if self.action == 'list':
-            return IsAdminOrSuperuser()
+            return (IsAdminOrSuperuser(),)
+        return super().get_permissions()
 
 
 class CategoryViewSet(CreateListDestroy):
@@ -111,10 +113,12 @@ class CategoryViewSet(CreateListDestroy):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     filter_backends = (filters.SearchFilter,)
+    permissions_classes = [IsAuthorAndStaffOrReadOnly]
 
     def get_permissions(self):
         if self.action == 'list':
-            return IsAdminOrSuperuser()
+            return (IsAdminOrSuperuser(),)
+        return super().get_permissions()
 
 
 class TitlesViewSet(viewsets.ModelViewSet):
@@ -124,10 +128,12 @@ class TitlesViewSet(viewsets.ModelViewSet):
     serializer_class = TitleSerializer
     filter_backends = (DjangoFilterBackend,)
     filter_class = TitleFilter
+    permissions_classes = [IsAuthorAndStaffOrReadOnly]
 
     def get_permissions(self):
         if self.action == 'list' or self.action == 'retrieve':
-            return IsAdminOrSuperuser()
+            return (IsAdminOrSuperuser(),)
+        return super().get_permissions()
 
 
 class ReviewsViewSet(viewsets.ModelViewSet):
