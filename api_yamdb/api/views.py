@@ -99,11 +99,11 @@ class GenreViewSet(CreateListDestroy):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     filter_backends = (filters.SearchFilter,)
-    permissions_classes = (AnyReadOnly,)
+    permission_classes = (IsAdminOrSuperuser,)
 
     def get_permissions(self):
-        if self.action == 'create' or self.action == 'destroy':
-            return IsAdminOrSuperuser(),
+        if self.action == 'list' or self.action == 'retrieve':
+            return AnyReadOnly(),
         return super().get_permissions()
 
 
@@ -113,11 +113,11 @@ class CategoryViewSet(CreateListDestroy):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     filter_backends = (filters.SearchFilter,)
-    permissions_classes = (AnyReadOnly,)
+    permission_classes = (IsAdminOrSuperuser,)
 
     def get_permissions(self):
-        if self.action == 'create' or self.action == 'destroy':
-            return IsAdminOrSuperuser(),
+        if self.action == 'list' or self.action == 'retrieve':
+            return AnyReadOnly(),
         return super().get_permissions()
 
 
@@ -128,13 +128,11 @@ class TitlesViewSet(viewsets.ModelViewSet):
     serializer_class = TitleSerializer
     filter_backends = (DjangoFilterBackend,)
     filter_class = TitleFilter
-    permissions_classes = (IsAdminOrSuperuser,)
+    permission_classes = (IsAdminOrSuperuser,)
 
     def get_permissions(self):
         if self.action == 'list' or self.action == 'retrieve':
             return (AnyReadOnly(),)
-        if self.action == 'create':
-            return (IsAdminOrSuperuser(),)
         return super().get_permissions()
 
 
