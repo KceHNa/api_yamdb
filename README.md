@@ -71,6 +71,10 @@ python manage.py migrate
 ```
 python manage.py createsuperuser
 ```
+### Импорт CSV-файла в базу данных
+```
+python manage.py importcsv --path /dir/table.csv
+```
 ---
 
 ### Авторы
