@@ -128,10 +128,12 @@ class TitlesViewSet(viewsets.ModelViewSet):
     serializer_class = TitleSerializer
     filter_backends = (DjangoFilterBackend,)
     filter_class = TitleFilter
-    permissions_classes = [IsAuthorAndStaffOrReadOnly]
+    permissions_classes = (IsAdminOrSuperuser,)
 
     def get_permissions(self):
         if self.action == 'list' or self.action == 'retrieve':
+            return (AnyReadOnly(),)
+        if self.action == 'create':
             return (IsAdminOrSuperuser(),)
         return super().get_permissions()
 
