@@ -23,14 +23,18 @@ class IsAuthorAndStaffOrReadOnly(permissions.BasePermission):
 
 
 class IsAdminOrSuperuser(permissions.BasePermission):
-
+    """
+    Доступ для админа или суперюзера.
+    """
     def has_permission(self, request, view):
         if request.user.is_authenticated:
-            return request.user.role == 'admin'or request.user.is_staff
+            return request.user.role == 'admin' or request.user.is_staff
         return False
 
 
 class AnyReadOnly(permissions.BasePermission):
-    
+    """
+    Доступ для всех только для чтения.
+    """
     def has_permission(self, request, view):
         return request.method in permissions.SAFE_METHODS

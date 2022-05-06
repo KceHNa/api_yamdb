@@ -8,14 +8,15 @@ import random
 from django.core.mail import send_mail
 from django_filters.rest_framework import DjangoFilterBackend
 
-from reviews.models import User, Title, Genre, Category, Review
-
+from reviews.models import User, Title, Genre, Category
 from .filters import TitleFilter
-from .permissions import IsAuthorAndStaffOrReadOnly, IsAdminOrSuperuser, AnyReadOnly
+from .permissions import (IsAuthorAndStaffOrReadOnly,
+                          IsAdminOrSuperuser, AnyReadOnly)
 from .serializers import (UserSerializer, SignUpSerializer,
                           GetTokenSerializer, ReviewSerializer,
                           TitleSerializer, CommentSerializer,
-                          GenreSerializer, CategorySerializer)
+                          GenreSerializer, CategorySerializer,
+                          TitlePostSerializer)
 
 
 class CreateListDestroy(mixins.CreateModelMixin,
@@ -123,8 +124,8 @@ class CategoryViewSet(CreateListDestroy):
 
 class TitlesViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all().annotate(
-        Avg("reviews__score")
-    ).order_by("name")
+        Avg('reviews__score')
+    ).order_by('name')
     serializer_class = TitleSerializer
     filter_backends = (DjangoFilterBackend,)
     filter_class = TitleFilter
@@ -134,6 +135,11 @@ class TitlesViewSet(viewsets.ModelViewSet):
         if self.action == 'list' or self.action == 'retrieve':
             return (AnyReadOnly(),)
         return super().get_permissions()
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return TitlePostSerializer
+        return TitleSerializer
 
 
 class ReviewsViewSet(viewsets.ModelViewSet):
@@ -158,7 +164,6 @@ class CommentViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthorAndStaffOrReadOnly]
 
     def get_queryset(self):
-        # Получаем id произведения и id отзыва на него
         title_id = self.kwargs.get('title_id')
         title = get_object_or_404(Title, id=title_id)
         try:
