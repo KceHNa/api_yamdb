@@ -11,7 +11,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from reviews.models import User, Title, Genre, Category
 
 from .filters import TitleFilter
-from .permissions import IsAuthorAndStaffOrReadOnly, IsAdminOrSuperuser
+from .permissions import IsAuthorAndStaffOrReadOnly, IsAdminOrSuperuser, AnyReadOnly
 from .serializers import (UserSerializer, SignUpSerializer,
                           GetTokenSerializer, ReviewSerializer,
                           TitleSerializer, CommentSerializer,
@@ -99,11 +99,11 @@ class GenreViewSet(CreateListDestroy):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     filter_backends = (filters.SearchFilter,)
-    permissions_classes = [IsAuthorAndStaffOrReadOnly]
+    permissions_classes = (AnyReadOnly,)
 
     def get_permissions(self):
-        if self.action == 'list':
-            return (IsAdminOrSuperuser(),)
+        if self.action == 'create' or self.action == 'destroy':
+            return IsAdminOrSuperuser(),
         return super().get_permissions()
 
 
@@ -113,11 +113,11 @@ class CategoryViewSet(CreateListDestroy):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     filter_backends = (filters.SearchFilter,)
-    permissions_classes = [IsAuthorAndStaffOrReadOnly]
+    permissions_classes = (AnyReadOnly,)
 
     def get_permissions(self):
-        if self.action == 'list':
-            return (IsAdminOrSuperuser(),)
+        if self.action == 'create' or self.action == 'destroy':
+            return IsAdminOrSuperuser(),
         return super().get_permissions()
 
 

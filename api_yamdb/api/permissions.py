@@ -25,9 +25,12 @@ class IsAuthorAndStaffOrReadOnly(permissions.BasePermission):
 class IsAdminOrSuperuser(permissions.BasePermission):
 
     def has_permission(self, request, view):
-        if not request.user.is_authenticated:
-            return False
-        return (
-            request.user.role == 'admin'
-            or request.user.is_staff
-        )
+        if request.user.is_authenticated:
+            return request.user.role == 'admin'or request.user.is_staff
+        return False
+
+
+class AnyReadOnly(permissions.BasePermission):
+    
+    def has_permission(self, request, view):
+        return request.method in permissions.SAFE_METHODS
