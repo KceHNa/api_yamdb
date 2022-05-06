@@ -8,7 +8,7 @@ import random
 from django.core.mail import send_mail
 from django_filters.rest_framework import DjangoFilterBackend
 
-from reviews.models import User, Title, Genre, Category
+from reviews.models import User, Title, Genre, Category, Review
 
 from .filters import TitleFilter
 from .permissions import IsAuthorAndStaffOrReadOnly, IsAdminOrSuperuser, AnyReadOnly
@@ -140,7 +140,7 @@ class TitlesViewSet(viewsets.ModelViewSet):
 
 class ReviewsViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    permissions_classes = [IsAuthorAndStaffOrReadOnly]
+    permission_classes = [IsAuthorAndStaffOrReadOnly]
     http_method_names = ['get', 'post', 'patch', 'delete']
 
     def get_queryset(self):
@@ -157,7 +157,7 @@ class ReviewsViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    permissions_classes = [IsAuthorAndStaffOrReadOnly]
+    permission_classes = [IsAuthorAndStaffOrReadOnly]
 
     def get_queryset(self):
         # Получаем id произведения и id отзыва на него
