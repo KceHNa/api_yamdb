@@ -2,6 +2,8 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
+from api_yamdb.settings import SCOPE_MAX, SCOPE_MIN
+
 ROLES_CHOICES = (
     ('user', 'Аутентифицированный пользователь'),
     ('moderator', 'Модератор'),
@@ -123,7 +125,7 @@ class GenreTitle(models.Model):
 
 
 class Review(models.Model):
-    """ Отзывы на произведения."""
+    """Отзывы на произведения."""
     title = models.ForeignKey(
         Title,
         on_delete=models.CASCADE,
@@ -135,10 +137,21 @@ class Review(models.Model):
         on_delete=models.CASCADE,
         related_name='reviews'
     )
-    score = models.SmallIntegerField(
+    score = models.PositiveSmallIntegerField(
         'Оценка',
-        validators=[MaxValueValidator(10), MinValueValidator(1)],
-        default=1)
+        validators=[
+            MaxValueValidator(
+                SCOPE_MAX,
+                message=f'Оценка должна быть <= {SCOPE_MAX}'
+            ),
+            MinValueValidator(
+                SCOPE_MIN,
+                message=f'Оценка должна быть >= {SCOPE_MIN}'
+            )
+        ],
+        default=1,
+        help_text='Введите оценку от 1 до 10'
+    )
     pub_date = models.DateTimeField(
         'Дата публикации',
         auto_now_add=True,
