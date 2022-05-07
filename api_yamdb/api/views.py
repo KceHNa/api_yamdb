@@ -8,7 +8,7 @@ import random
 from django.core.mail import send_mail
 from django_filters.rest_framework import DjangoFilterBackend
 
-from reviews.models import User, Title, Genre, Category
+from reviews.models import User, Title, Genre, Category, Review
 from .filters import TitleFilter
 from .permissions import (IsAuthorAndStaffOrReadOnly,
                           IsAdminOrSuperuser, AnyReadOnly)
@@ -165,20 +165,17 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         title_id = self.kwargs.get('title_id')
-        title = get_object_or_404(Title, id=title_id)
-        try:
-            review_id = self.kwargs.get('review_id')
-            review = title.reviews.get(id=review_id)
-        except TypeError:
-            TypeError('Нет такого отзыва по этому id')
-        return review.comments.all()
+        review_id = self.kwargs.get('review_id')
+        review = get_object_or_404(
+            Review, title_id=title_id,id=review_id
+        )
+        return review.comments.all().order_by('id')
 
     def perform_create(self, serializer):
         title_id = self.kwargs.get('title_id')
-        title = get_object_or_404(Title, id=title_id)
-        try:
-            review_id = self.kwargs.get('review_id')
-            review = title.reviews.get(id=review_id)
-        except TypeError:
-            TypeError('Нет такого отзыва по этому id')
-        serializer.save(author=self.request.user, review=review)
+        review_id = self.kwargs.get('review_id')
+        review = get_object_or_404(
+            Review, title_id=title_id,id=review_id
+        )
+        user = get_object_or_404(User, username=self.request.user)
+        serializer.save(author=user, review=review)
