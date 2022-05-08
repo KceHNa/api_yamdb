@@ -17,14 +17,7 @@ from .serializers import (UserSerializer, SignUpSerializer,
                           TitleSerializer, CommentSerializer,
                           GenreSerializer, CategorySerializer,
                           TitlePostSerializer)
-
-
-class CreateListDestroy(mixins.CreateModelMixin,
-                        mixins.DestroyModelMixin,
-                        mixins.ListModelMixin,
-                        viewsets.GenericViewSet):
-
-    pass
+from .mixins import CreateListDestroy
 
 
 class UserViewSet(viewsets.ModelViewSet):
