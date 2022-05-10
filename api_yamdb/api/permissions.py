@@ -38,3 +38,13 @@ class AnyReadOnly(permissions.BasePermission):
     """
     def has_permission(self, request, view):
         return request.method in permissions.SAFE_METHODS
+
+
+class AdminOrReadOnly(permissions.BasePermission):
+    """
+    Доступ для администратора или только для чтения.
+    """
+    def has_permission(self, request, view):
+        if request.user.is_authenticated:
+            return request.user.role == 'admin' or request.user.is_staff
+        return request.method in permissions.SAFE_METHODS

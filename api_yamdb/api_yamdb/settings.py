@@ -114,3 +114,4 @@ EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
 
 SCOPE_MIN = 1
 SCOPE_MAX = 10
+CREW_EMAIL = 'from@yamdb.com'

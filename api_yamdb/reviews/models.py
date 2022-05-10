@@ -4,14 +4,17 @@ from django.db import models
 
 from api_yamdb.settings import SCOPE_MAX, SCOPE_MIN
 
-ROLES_CHOICES = (
-    ('user', 'Аутентифицированный пользователь'),
-    ('moderator', 'Модератор'),
-    ('admin', 'Администратор'),
-)
-
 
 class User(AbstractUser):
+    """Пользователи."""
+    USER = 'user'
+    ADMIN = 'admin'
+    MODERATOR = 'moderator'
+    ROLES_CHOICES = (
+        (USER, 'Аутентифицированный пользователь'),
+        (MODERATOR, 'Модератор'),
+        (ADMIN, 'Администратор'),
+    )
     email = models.EmailField(unique=True)
     bio = models.TextField(
         'Биография',
