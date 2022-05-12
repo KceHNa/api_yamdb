@@ -2,7 +2,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-from api_yamdb.settings import SCOPE_MAX, SCOPE_MIN
+from django.conf import settings
 
 
 class User(AbstractUser):
@@ -144,12 +144,12 @@ class Review(models.Model):
         'Оценка',
         validators=[
             MaxValueValidator(
-                SCOPE_MAX,
-                message=f'Оценка должна быть <= {SCOPE_MAX}'
+                settings.SCOPE_MAX,
+                message=f'Оценка должна быть <= {settings.SCOPE_MAX}'
             ),
             MinValueValidator(
-                SCOPE_MIN,
-                message=f'Оценка должна быть >= {SCOPE_MIN}'
+                settings.SCOPE_MIN,
+                message=f'Оценка должна быть >= {settings.SCOPE_MIN}'
             )
         ],
         default=1,
