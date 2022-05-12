@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.generics import get_object_or_404
 
-from api_yamdb.settings import SCOPE_MIN, SCOPE_MAX
+from django.conf import settings
 from reviews.models import User, Title, Review, Comment, Category, Genre
 
 
@@ -107,7 +107,7 @@ class ReviewSerializer(serializers.ModelSerializer):
         return data
 
     def validate_score(self, value):
-        if value < SCOPE_MIN or value > SCOPE_MAX:
+        if value < settings.SCOPE_MIN or value > settings.SCOPE_MAX:
             raise serializers.ValidationError(
                 'Оценка - это целое число от 1 до 10'
             )

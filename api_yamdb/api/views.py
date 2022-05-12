@@ -29,7 +29,7 @@ from .serializers import (
     TitlePostSerializer
 )
 from .mixins import CreateListDestroy
-from api_yamdb.settings import CREW_EMAIL
+from django.conf import settings
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -51,43 +51,38 @@ class UserViewSet(viewsets.ModelViewSet):
             serializer = UserSerializer(user)
             return Response(serializer.data)
         serializer = UserSerializer(user, data=request.data, partial=True)
-        if serializer.is_valid(raise_exception=True):
-            serializer.save(role=user.role)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def get_permissions(self):
-        if self.action == 'me':
-            return permissions.IsAuthenticated(),
-        return super().get_permissions()
+        serializer.is_valid(raise_exception=True)
+        serializer.save(role=user.role)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])
 def signup(request):
     serializer = SignUpSerializer(data=request.data)
-    if serializer.is_valid(raise_exception=True):
-        code = random.randint(100000, 999999)
-        email = request.data['email']
-        send_mail(
-            'Код подтверждения YaMDb',
-            f'Ваш код подтверждения: {code}',
-            CREW_EMAIL,
-            [f'{email}'],
-            fail_silently=False,
-        )
-        serializer.save(confirmation_code=code)
-        return Response(serializer.data)
+    serializer.is_valid(raise_exception=True)
+    code = random.randint(100000, 999999)
+    email = request.data['email']
+    send_mail(
+        'Код подтверждения YaMDb',
+        f'Ваш код подтверждения: {code}',
+        settings.CREW_EMAIL,
+        [f'{email}'],
+        fail_silently=False,
+    )
+    serializer.save(confirmation_code=code)
+    return Response(serializer.data)
 
 
 @api_view(['POST'])
 def get_token(request):
     serializer = GetTokenSerializer(data=request.data)
-    if serializer.is_valid(raise_exception=True):
-        user = get_object_or_404(User, username=request.data['username'])
-        token = RefreshToken.for_user(user)
-        return Response({
-            'username': request.data['username'],
-            'token': str(token.access_token)
-        })
+    serializer.is_valid(raise_exception=True)
+    user = get_object_or_404(User, username=request.data['username'])
+    token = RefreshToken.for_user(user)
+    return Response({
+        'username': request.data['username'],
+        'token': str(token.access_token)
+    })
 
 
 class GenreViewSet(CreateListDestroy):
