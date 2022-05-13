@@ -8,6 +8,7 @@ from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
 from django.core.mail import send_mail
 from django_filters.rest_framework import DjangoFilterBackend
+from django.conf import settings
 
 from reviews.models import User, Title, Genre, Category, Review
 from .filters import TitleFilter
@@ -29,7 +30,6 @@ from .serializers import (
     TitlePostSerializer
 )
 from .mixins import CreateListDestroy
-from django.conf import settings
 
 
 class UserViewSet(viewsets.ModelViewSet):
